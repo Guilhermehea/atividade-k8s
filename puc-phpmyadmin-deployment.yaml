@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: phpmyadmin
+  namespace: atividade-k8s
+  labels:
+    app: phpmyadmin
+spec:
+  selector:
+    matchLabels:
+      app: phpmyadmin
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: phpmyadmin
+    spec:
+      containers:
+        - name: phpmyadmin
+          image: phpmyadmin:apache
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: phpmyadmin
+              containerPort: 80
+          env:
+            - name: PMA_HOST
+              value: mysql-wordpress
+            - name: PMA_PORT
+              value: "3306"
+            - name: MYSQL_ROOT_PASSWORD
+              value: root_password
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 200m
+              ephemeral-storage: 1Gi
+            limits:
+              memory: 512Mi
+              cpu: 500m
+              ephemeral-storage: 5Gi
+          livenessProbe:
+            httpGet: 
+              path: /
+              port: 80
+            failureThreshold: 5
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            successThreshold: 1
+            timeoutSeconds: 30
+          readinessProbe:
+            httpGet: 
+              path: /
+              port: 80
+            failureThreshold: 5
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            successThreshold: 1
+            timeoutSeconds: 30

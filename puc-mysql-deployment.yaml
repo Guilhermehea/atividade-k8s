@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-wordpress
+  namespace: atividade-k8s
+spec:
+  selector:
+    matchLabels:
+      app: wordpress
+      tier: mysql-wordpress
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: wordpress
+        tier: mysql-wordpress
+    spec:
+      volumes:
+        - name: mysql-wordpress
+          hostPath:
+            path: /var/lib/mysql
+            type: DirectoryOrCreate
+      containers:
+        - name: mysql-wordpress
+          image: mysql:8.0.33
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: mysql-wordpress
+              containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: root_password
+            - name: MYSQL_DATABASE
+              value: wordpress_db
+            - name: MYSQL_USER
+              value: wordpress_user
+            - name: MYSQL_PASSWORD
+              value: wordpress_password
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 200m
+              ephemeral-storage: 1Gi
+            limits:
+              memory: 512Mi
+              cpu: 500m
+              ephemeral-storage: 5Gi
+          livenessProbe:
+            failureThreshold: 2
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 1
+            httpGet: null
+            tcpSocket:
+              port: 3306
+          readinessProbe:
+            failureThreshold: 2
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 1
+            httpGet: null
+            tcpSocket:
+              port: 3306
